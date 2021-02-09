@@ -87,6 +87,9 @@ def wiki_title(name):
 def format_item(item_entry):
     """Formats an item as a Lua table."""
     item, disabled = item_entry
+    if item.id == 1121:
+        # Deuterium: We discover this on our own, it creates duplicates
+        item.produce_from = None
     line1 = (f"    [{item.id}]={{name={wiki_title(item.name)!r}, type={item.type.name!r}, " +
         f"description={item.description!r},\n            ")
     fields = {'grid_index':item.grid_index, 'stack_size':item.stack_size}
