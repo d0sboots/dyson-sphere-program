@@ -122,6 +122,8 @@ def format_recipe(recipe_entry):
         rec.result_counts[0] /= 100.0
         rec.item_counts[0] /= 100.0
     time_spend = round(rec.time_spend / 60.0, 3)
+    if time_spend == int(time_spend):
+        time_spend = int(time_spend)  # Changes str() formating
     if 0 < time_spend < 1:
         # We need the extra precision. Format without leading 0.
         time_spend = repr(str(time_spend).lstrip('0'))
