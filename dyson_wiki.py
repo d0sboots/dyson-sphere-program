@@ -50,6 +50,30 @@ BUILDINGS = {
     ERecipeType.FRACTIONATE:[2314],
     ERecipeType.RESEARCH:[2901]}
 
+# Patches we make to be explicit about what techs unlock items.
+# This lists the recipe id of recipes to be "fixed": Their first output item
+# will be marked as having an explict_tech_dep of the tech that unlocks
+# the recipe. This works around cases where multiple recipes, unlocked by
+# multiple techs produce the same item.
+# to the tech id.
+UNLOCK_HACKS = [
+    16,  # Plasma Extract Refining
+    17,  # Energetic Graphite
+    37,  # Crystal Silicon
+    78]  # Space Warper
+
+# Tweaks to the sort-key function, to get the recipe list to sort in a better
+# order.
+KEY_TWEAKS = {75: 103, #Universe Matrix -> After Gravity Matrix
+    89: 85, #Conveyor Belt MK.II -> After MK.I
+    92: 86, #Conveyor Belt MK.III
+    85: 87, #Sorter MK.I
+    88: 88, #Sorter MK.II
+    90: 89, #Sorter Mk.III
+    86: 90, #Storage MK. I
+    91: 91, #Storage Mk. II
+    87: 92} #Splitter
+
 def translate_fields(translations, proto_set, fields):
     """In-place replace text with translations for one proto_set."""
     for item in proto_set.data_array:
@@ -79,6 +103,16 @@ def dump_all(data):
         print(f"{set_name}:")
         for item in getattr(data, set_name).data_array:
             print(f"    {item}")
+
+def dump_sorted_names(entry_list):
+    """Print just the names, sorted.
+
+    Useful for checking if all pages have been created.
+    """
+    names = [wiki_title(x.name) for x in entry_list]
+    names.sort()
+    for name in names:
+        print(name)
 
 def wiki_title(name):
     """Like title(), except it never lowercases a letter."""
@@ -182,16 +216,6 @@ def set_valid(items_map, recipe_entry):
     for iid in recipe_entry[0].results:
         items_map[iid][1] = False
 
-KEY_TWEAKS = {75: 103, #Universe Matrix -> After Gravity Matrix
-    89: 85, #Conveyor Belt MK.II -> After MK.I
-    92: 86, #Conveyor Belt MK.III
-    85: 87, #Sorter MK.I
-    88: 88, #Sorter MK.II
-    90: 89, #Sorter Mk.III
-    86: 90, #Storage MK. I
-    91: 91, #Storage Mk. II
-    87: 92} #Splitter
-
 def recipe_key(recipe):
     """Calculate a sort key for recipes"""
     key = recipe.id
@@ -244,10 +268,16 @@ def print_wiki(data):
     This is designed to replace (most of) what's at Module:Recipe/Data.
     """
     items_map, recipes_map = create_augmented_maps(data)
+    # Deal with UNLOCK_HACKS.
+    techs = data.TechProtoSet.data_array
+    for tech in techs:
+        for hack in UNLOCK_HACKS:
+            if hack in tech.unlock_recipes:
+                items_map[recipes_map[hack][0].results[0]][0].pre_tech_override = tech.id
 
     items_str = ''.join(format_item(x) for x in items_map.values())
     recipes_str = ''.join(format_recipe(x) for x in recipes_map.values())
-    techs_str = ''.join(format_tech(x) for x in data.TechProtoSet.data_array)
+    techs_str = ''.join(format_tech(x) for x in techs)
     facilities_str = ''.join(format_facility(x, items_map) for x in ERecipeType)
     starting_recipes_str = ', '.join(str(x) for x in STARTING_RECIPES)
 
@@ -307,12 +337,16 @@ def fuzzy_lookup_item(name_or_id, lst):
 def main():
     """Main function, keeps a separate scope"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dump_item',
+    parser.add_argument('--find_item',
                         help='Lookup a specific item, by name or id')
-    parser.add_argument('--dump_recipe',
+    parser.add_argument('--find_recipe',
                         help='Lookup a specific recipe, by name or id')
-    parser.add_argument('--dump_tech',
+    parser.add_argument('--find_tech',
                         help='Lookup a specific tech, by name or id')
+    parser.add_argument('--dump_item_names', action='store_true',
+                        help='Print a sorted list of item names')
+    parser.add_argument('--dump_tech_names', action='store_true',
+                        help='Print a sorted list of tech names')
     parser.add_argument('--dump_all', action='store_true',
                         help='Dump everything')
     parser.add_argument('--wiki', action='store_true',
@@ -326,20 +360,24 @@ def main():
 
     try:
         item = None
-        if args.dump_item:
+        if args.find_item:
             item = fuzzy_lookup_item(
-                    args.dump_item, data.ItemProtoSet.data_array)
-        if args.dump_recipe:
+                    args.find_item, data.ItemProtoSet.data_array)
+        if args.find_recipe:
             item = fuzzy_lookup_item(
-                    args.dump_recipe, data.RecipeProtoSet.data_array)
-        if args.dump_tech:
+                    args.find_recipe, data.RecipeProtoSet.data_array)
+        if args.find_tech:
             item = fuzzy_lookup_item(
-                    args.dump_tech, data.TechProtoSet.data_array)
+                    args.find_tech, data.TechProtoSet.data_array)
         if item:
             print(repr(item))
         else:
             if args.dump_all:
                 dump_all(data)
+            elif args.dump_item_names:
+                dump_sorted_names(data.ItemProtoSet.data_array)
+            elif args.dump_tech_names:
+                dump_sorted_names(data.TechProtoSet.data_array)
             elif args.wiki:
                 print_wiki(data)
             else:
