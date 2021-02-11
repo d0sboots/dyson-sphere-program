@@ -19,6 +19,7 @@ These must be extracted from the game files. See the module help in
 """
 
 import argparse
+import re
 import sys
 
 import dysonsphere
@@ -73,6 +74,7 @@ KEY_TWEAKS = {75: 103, #Universe Matrix -> After Gravity Matrix
     86: 90, #Storage MK. I
     91: 91, #Storage Mk. II
     87: 92} #Splitter
+COLOR_RE = re.compile('<color="([^"]*)">([^<]*)</color>')
 
 def translate_fields(translations, proto_set, fields):
     """In-place replace text with translations for one proto_set."""
@@ -118,6 +120,10 @@ def wiki_title(name):
     """Like title(), except it never lowercases a letter."""
     return ''.join(min(x,y) for x,y in zip(name, name.title()))
 
+def color_sub(desc):
+    """Replace all <color="#B9DFFFC4">(rare)</color> tags with equivalent HTML."""
+    return COLOR_RE.sub('<span style="color:\\1">\\2</span>', desc)
+
 def format_item(item_entry):
     """Formats an item as a Lua table."""
     item, disabled = item_entry
@@ -125,7 +131,7 @@ def format_item(item_entry):
         # Deuterium: We discover this on our own, it creates duplicates
         item.produce_from = None
     line1 = (f"    [{item.id}]={{name={wiki_title(item.name)!r}, type={item.type.name!r}, " +
-        f"description={item.description!r},\n            ")
+        f"description={color_sub(item.description)!r},\n            ")
     fields = {'grid_index':item.grid_index, 'stack_size':item.stack_size}
     if item.can_build:
         fields['can_build'] = 'true'
@@ -140,7 +146,7 @@ def format_item(item_entry):
     if item.pre_tech_override:
         fields['explicit_tech_dep'] = item.pre_tech_override
     if item.mining_from:
-        fields['mining_from'] = repr(item.mining_from)
+        fields['mining_from'] = repr(color_sub(item.mining_from))
     if item.produce_from:
         fields['explicit_produce_from'] = repr(wiki_title(item.produce_from))
     if disabled:
@@ -174,7 +180,7 @@ def format_recipe(recipe_entry):
     if rec.explicit:
         fields['explicit'] = 'true'
     if rec.description:
-        fields['description'] = repr(rec.description)
+        fields['description'] = repr(color_sub(rec.description))
     if disabled:
         fields['disabled'] = 'true'
     footer = '},\n'
@@ -191,12 +197,15 @@ def format_tech(tech):
             for x in tup)
     recipes = ', '.join(str(x) for x in tech.unlock_recipes)
     line1 = (f"    {{id={tech.id}, name={wiki_title(tech.name)!r}, " +
-        f"hash_needed={tech.hash_needed}, description={tech.description!r},\n       ")
+        f"hash_needed={tech.hash_needed}, " +
+        f"description={color_sub(tech.description)!r},\n       ")
     fields = {'inputs':f"{{{research_items}}}"}
     if recipes:
         fields['recipes'] = f"{{{recipes}}}"
     if add_items:
         fields['add_items'] = f"{{{add_items}}}"
+    if tech.conclusion:
+        fields['conclusion'] = repr(color_sub(tech.conclusion))
     return line1 + ', '.join(f"{k}={v}" for k, v in fields.items()) + "},\n"
 
 def format_facility(facility, items_map):
