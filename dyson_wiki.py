@@ -356,6 +356,8 @@ def main():
                         help='Print a sorted list of item names')
     parser.add_argument('--dump_tech_names', action='store_true',
                         help='Print a sorted list of tech names')
+    parser.add_argument('--dump_strings', action='store_true',
+                        help='Print all the translations, raw')
     parser.add_argument('--dump_all', action='store_true',
                         help='Dump everything')
     parser.add_argument('--wiki', action='store_true',
@@ -387,6 +389,9 @@ def main():
                 dump_sorted_names(data.ItemProtoSet.data_array)
             elif args.dump_tech_names:
                 dump_sorted_names(data.TechProtoSet.data_array)
+            elif args.dump_strings:
+                for entry in data.StringProtoSet.data_array:
+                    print(entry)
             elif args.wiki:
                 print_wiki(data)
             else:
