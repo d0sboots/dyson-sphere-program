@@ -29,17 +29,17 @@ from dysonsphere import ERecipeType, EItemType
 STARTING_RECIPES = [1, 2, 3, 4, 5, 6, 50]
 STARTING_TECHS = [1]
 MADE_FROM = {
-    ERecipeType.NONE:"-",
-    ERecipeType.SMELT:"冶炼设备",
-    ERecipeType.CHEMICAL:"化工设备",
-    ERecipeType.REFINE:"精炼设备",
-    ERecipeType.ASSEMBLE:"制造台",
-    ERecipeType.PARTICLE:"粒子对撞机",
-    ERecipeType.EXCHANGE:"能量交换器",
-    ERecipeType.PHOTON_STORE:"射线接收站",
-    ERecipeType.FRACTIONATE:"分馏设备",
-    ERecipeType.RESEARCH:"科研设备",
-    None:"未知"}
+    ERecipeType.NONE:'-',
+    ERecipeType.SMELT:'冶炼设备',
+    ERecipeType.CHEMICAL:'化工设备',
+    ERecipeType.REFINE:'精炼设备',
+    ERecipeType.ASSEMBLE:'制造台',
+    ERecipeType.PARTICLE:'粒子对撞机',
+    ERecipeType.EXCHANGE:'能量交换器',
+    ERecipeType.PHOTON_STORE:'射线接收站',
+    ERecipeType.FRACTIONATE:'分馏设备',
+    ERecipeType.RESEARCH:'科研设备',
+    None:'未知'}
 BUILDINGS = {
     ERecipeType.SMELT:[2302],
     ERecipeType.CHEMICAL:[2309],
@@ -52,16 +52,16 @@ BUILDINGS = {
     ERecipeType.RESEARCH:[2901]}
 
 CATEGORIES = {
-    EItemType.UNKNOWN:"Unknown Category",
-    EItemType.RESOURCE:"Natural Resources",
-    EItemType.MATERIAL:"Materials",
-    EItemType.COMPONENT:"Components",
-    EItemType.PRODUCT:"End Products",
-    EItemType.LOGISTICS:"Logistics",
-    EItemType.PRODUCTION:"Production Facilities",
-    EItemType.DECORATION:"Decorations",
-    EItemType.WEAPON:"Weapons",
-    EItemType.MATRIX:"Science Matrices"}
+    EItemType.UNKNOWN:'Unknown Category',
+    EItemType.RESOURCE:'Natural Resources',
+    EItemType.MATERIAL:'Materials',
+    EItemType.COMPONENT:'Components',
+    EItemType.PRODUCT:'End Products',
+    EItemType.LOGISTICS:'Logistics',
+    EItemType.PRODUCTION:'Production Facilities',
+    EItemType.DECORATION:'Decorations',
+    EItemType.WEAPON:'Weapons',
+    EItemType.MATRIX:'Science Matrices'}
 
 # Patches we make to be explicit about what techs unlock items.
 # This lists the recipe id of recipes to be "fixed": Their first output item
@@ -114,9 +114,9 @@ def dump_all(data):
     (It's still translated.)
     """
     for set_name in ['ItemProtoSet', 'RecipeProtoSet', 'TechProtoSet']:
-        print(f"{set_name}:")
+        print(f'{set_name}:')
         for item in getattr(data, set_name).data_array:
-            print(f"    {item}")
+            print(f'    {item}')
 
 def dump_sorted_names(entry_list):
     """Print just the names, sorted.
@@ -142,9 +142,12 @@ def format_item(item_entry):
     if item.id == 1121:
         # Deuterium: We discover this on our own, it creates duplicates
         item.produce_from = None
-    line1 = (f"    [{item.id}]={{name={wiki_title(item.name)!r}, type={item.type.name!r}, " +
-        f"description={color_sub(item.description)!r},\n            ")
-    fields = {'grid_index':item.grid_index, 'stack_size':item.stack_size}
+    fields = {
+        'name':repr(wiki_title(item.name)),
+        'type':repr(item.type.name),
+        'grid_index':item.grid_index,
+        'stack_size':item.stack_size,
+    }
     if item.can_build:
         fields['can_build'] = 'true'
     if item.is_fluid:
@@ -161,10 +164,12 @@ def format_item(item_entry):
         fields['mining_from'] = repr(color_sub(item.mining_from))
     if item.produce_from:
         fields['explicit_produce_from'] = repr(wiki_title(item.produce_from))
+    fields['description'] = repr(color_sub(item.description))
     if disabled:
         fields['disabled'] = 'true'
-    return (line1 + ', '.join(f"{k}={v}" for k, v in fields.items()) +
-            f'}},  --image="{item.icon_path.rsplit("/", 1)[1]}"\n')
+    return (f'    [{item.id}] = {{\n' +
+            ''.join(f'        {k}={v},\n' for k, v in fields.items()) +
+            f'        --image={item.icon_path.rsplit("/", 1)[1]!r}\n    }},\n')
 
 def format_recipe(recipe_entry):
     """Formats a recipe as a Lua table."""
@@ -184,21 +189,26 @@ def format_recipe(recipe_entry):
             for x in tup)
     inputs = ', '.join(str(x) for tup in zip(rec.items, rec.item_counts)
             for x in tup)
-    line1 = (f"    {{id={rec.id}, name={wiki_title(rec.name)!r}, type={rec.type.name!r}, " +
-        f"outputs={{{outputs}}}, inputs={{{inputs}}},\n       ")
-    fields = {'grid_index':rec.grid_index,
-            'handcraft':'true' if rec.handcraft else 'false',
-            'seconds':time_spend}
+    fields = {
+        'id':rec.id,
+        'name':repr(wiki_title(rec.name)),
+        'type':repr(rec.type.name),
+        'outputs':'{' + outputs + '}',
+        'inputs':'{' + inputs + '}',
+        'grid_index':rec.grid_index,
+        'handcraft':'true' if rec.handcraft else 'false',
+        'seconds':time_spend,
+    }
     if rec.explicit:
         fields['explicit'] = 'true'
     if rec.description:
         fields['description'] = repr(color_sub(rec.description))
     if disabled:
         fields['disabled'] = 'true'
-    footer = '},\n'
+    footer = '    },'
     if rec.icon_path:
-        footer = f'}},  --image="{rec.icon_path.rsplit("/", 1)[1]}"\n'
-    return line1 + ', '.join(f"{k}={v}" for k, v in fields.items()) + footer
+        footer = f'        --image={rec.icon_path.rsplit("/", 1)[1]!r}\n    }},'
+    return '{\n' + ''.join(f'        {k}={v},\n' for k, v in fields.items()) + footer
 
 def format_tech(tech):
     """Formats a tech as a Lua table."""
@@ -208,17 +218,20 @@ def format_tech(tech):
     research_items = ', '.join(str(x) for tup in zip(tech.items, research_counts)
             for x in tup)
     recipes = ', '.join(str(x) for x in tech.unlock_recipes)
-    line1 = (f"    {{id={tech.id}, name={wiki_title(tech.name)!r}, " +
-        f"hash_needed={tech.hash_needed}, " +
-        f"description={color_sub(tech.description)!r},\n       ")
-    fields = {'inputs':f"{{{research_items}}}"}
+    fields = {
+        'id':tech.id,
+        'name':repr(wiki_title(tech.name)),
+        'hash_needed':tech.hash_needed,
+        'inputs':f'{{{research_items}}}',
+    }
     if recipes:
-        fields['recipes'] = f"{{{recipes}}}"
+        fields['recipes'] = f'{{{recipes}}}'
     if add_items:
-        fields['add_items'] = f"{{{add_items}}}"
+        fields['add_items'] = f'{{{add_items}}}'
+    fields['description'] = repr(color_sub(tech.description))
     if tech.conclusion:
         fields['conclusion'] = repr(color_sub(tech.conclusion))
-    return line1 + ', '.join(f"{k}={v}" for k, v in fields.items()) + "},\n"
+    return '{\n' + ''.join(f'        {k}={v},\n' for k, v in fields.items()) + '    },'
 
 def format_facility(facility, items_map):
     """Formats an ERecipeType enum as a Lua table."""
@@ -307,9 +320,11 @@ def print_wiki(data):
 game_items = {{
 {items_str}}},
 game_recipes = {{
-{recipes_str}}},
+    {recipes_str}
+}},
 game_techs = {{
-{techs_str}}},
+    {techs_str}
+}},
 --[[
 These don't come from the game files, because they're totally buried in
 the game logic.
