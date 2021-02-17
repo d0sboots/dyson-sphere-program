@@ -23,7 +23,7 @@ import re
 import sys
 
 import dysonsphere
-from dysonsphere import ERecipeType
+from dysonsphere import ERecipeType, EItemType
 
 # These aren't worth importing from a file
 STARTING_RECIPES = [1, 2, 3, 4, 5, 6, 50]
@@ -50,6 +50,18 @@ BUILDINGS = {
     ERecipeType.PHOTON_STORE:[2208],
     ERecipeType.FRACTIONATE:[2314],
     ERecipeType.RESEARCH:[2901]}
+
+CATEGORIES = {
+    EItemType.UNKNOWN:"Unknown Category",
+    EItemType.RESOURCE:"Natural Resources",
+    EItemType.MATERIAL:"Materials",
+    EItemType.COMPONENT:"Components",
+    EItemType.PRODUCT:"End Products",
+    EItemType.LOGISTICS:"Logistics",
+    EItemType.PRODUCTION:"Production Facilities",
+    EItemType.DECORATION:"Decorations",
+    EItemType.WEAPON:"Weapons",
+    EItemType.MATRIX:"Science Matrices"}
 
 # Patches we make to be explicit about what techs unlock items.
 # This lists the recipe id of recipes to be "fixed": Their first output item
@@ -289,6 +301,7 @@ def print_wiki(data):
     techs_str = ''.join(format_tech(x) for x in techs)
     facilities_str = ''.join(format_facility(x, items_map) for x in ERecipeType)
     starting_recipes_str = ', '.join(str(x) for x in STARTING_RECIPES)
+    categories_str = ''.join(f'    {k.name}={v!r},\n' for k, v in CATEGORIES.items())
 
     print(f"""return {{
 game_items = {{
@@ -308,6 +321,11 @@ game_facilities = {{
 -- This is just an array of what you start out being able to craft.
 -- (Both in the replicator, and in buildings once you get them.)
 starting_recipes = {{{starting_recipes_str}}},
+-- This maps the symbolic item type names to wiki categories.
+-- These don't come from the game files at all, although they're essentially
+-- the pluralized version of the equivalent strings.
+categories = {{
+{categories_str}}},
 }}""")
 
 def fuzzy_lookup_item(name_or_id, lst):
