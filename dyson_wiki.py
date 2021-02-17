@@ -133,8 +133,14 @@ def wiki_title(name):
     return ''.join(min(x,y) for x,y in zip(name, name.title()))
 
 def color_sub(desc):
-    """Replace all <color="#B9DFFFC4">(rare)</color> tags with equivalent HTML."""
-    return COLOR_RE.sub('<span style="color:\\1">\\2</span>', desc)
+    """Replace all <color="#B9DFFFC4">(rare)</color> tags with equivalent HTML.
+
+    Also replaces newlines with <br>, which otherwise would get interpreted as
+    paragraph breaks.
+    """
+    return (COLOR_RE
+        .sub('<span style="color:\\1">\\2</span>', desc)
+        .replace('\n', '<br>'))
 
 def format_item(item_entry):
     """Formats an item as a Lua table."""
