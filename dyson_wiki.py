@@ -160,7 +160,7 @@ def format_item(item_entry):
         fields['is_fluid'] = 'true'
     if item.heat_value:
         fields['energy'] = item.heat_value
-    if item.reactor_inc:
+    if item.reactor_inc or item.heat_value:  # Force include if it's a fuel
         fields['fuel_chamber_boost'] = round(item.reactor_inc, 5)
     if item.unlock_key:
         fields['unlock_key'] = item.unlock_key
