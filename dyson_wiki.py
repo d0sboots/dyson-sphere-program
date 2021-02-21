@@ -156,6 +156,8 @@ def format_item(item_entry):
     }
     if item.can_build:
         fields['can_build'] = 'true'
+    if item.build_index:
+        fields['build_index'] = item.build_index
     if item.is_fluid:
         fields['is_fluid'] = 'true'
     if item.heat_value:
