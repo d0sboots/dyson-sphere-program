@@ -63,6 +63,17 @@ CATEGORIES = {
     EItemType.WEAPON:'Weapons',
     EItemType.MATRIX:'Science Matrices'}
 
+BUILDING_CATEGORIES = [
+    'Power',
+    'Gathering',
+    'Logistics',
+    'Storage',
+    'Production',
+    'Transportation',
+    'Research',
+    'Dyson Sphere Program',
+    'Environment Modification']
+
 # Patches we make to be explicit about what techs unlock items.
 # This lists the recipe id of recipes to be "fixed": Their first output item
 # will be marked as having an explict_tech_dep of the tech that unlocks
@@ -323,6 +334,7 @@ def print_wiki(data):
     facilities_str = ''.join(format_facility(x, items_map) for x in ERecipeType)
     starting_recipes_str = ', '.join(str(x) for x in STARTING_RECIPES)
     categories_str = ''.join(f'    {k.name}={v!r},\n' for k, v in CATEGORIES.items())
+    building_categories_str = ''.join(f'    {x!r},\n' for x in BUILDING_CATEGORIES)
 
     print(f"""return {{
 game_items = {{
@@ -333,22 +345,29 @@ game_recipes = {{
 game_techs = {{
     {techs_str}
 }},
---[[
-These don't come from the game files, because they're totally buried in
-the game logic.
-This is a map from recipe type (which is effectively facility type) to its name
-and an array of item ids of buildings that can produce those types of recipes.
-]]
+
+-- These (below this point) don't come from the game files, because they're
+-- totally buried in the game logic.
+
+-- This is a map from recipe type (which is effectively facility type) to its name
+-- and an array of item ids of buildings that can produce those types of recipes.
 game_facilities = {{
 {facilities_str}}},
+
 -- This is just an array of what you start out being able to craft.
 -- (Both in the replicator, and in buildings once you get them.)
 starting_recipes = {{{starting_recipes_str}}},
+
 -- This maps the symbolic item type names to wiki categories.
 -- These don't come from the game files at all, although they're essentially
 -- the pluralized version of the equivalent strings.
 categories = {{
 {categories_str}}},
+
+-- An array of building categories. Maps from the shortcut key you press
+-- in-game to the name of the category.
+building_categories = {{
+{building_categories_str}}},
 }}""")
 
 def fuzzy_lookup_item(name_or_id, lst):
