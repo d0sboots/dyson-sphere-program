@@ -237,6 +237,7 @@ def format_tech(tech):
     research_items = ', '.join(str(x) for tup in zip(tech.items, research_counts)
             for x in tup)
     recipes = ', '.join(str(x) for x in tech.unlock_recipes)
+    pre_techs = ', '.join(str(x) for x in tech.pre_techs)
     fields = {
         'id':tech.id,
         'name':repr(wiki_title(tech.name)),
@@ -247,6 +248,8 @@ def format_tech(tech):
         fields['recipes'] = f'{{{recipes}}}'
     if add_items:
         fields['add_items'] = f'{{{add_items}}}'
+    if pre_techs:
+        fields['pre_techs'] = f'{{{pre_techs}}}'
     fields['description'] = repr(color_sub(tech.description))
     if tech.conclusion:
         fields['conclusion'] = repr(color_sub(tech.conclusion))
@@ -437,7 +440,8 @@ relevant/present for the given tech. The valid fields are:
              be matrices.
     recipes - What recipe_ids are unlocked by this tech. Omitted if empty.
     add_items - Item ids that are added directly to your inventory on
-                completion of this tech. Omitted if empty.
+                completion of this tech. Same format as inputs. Omitted if empty.
+    pre_techs - Prerequisite technologies. Omitted if empty.
     description - The in-game tech-tree text. May include colored spans.
     conclusion - The text shown in the pop-up when you finish researching.
 ]]
