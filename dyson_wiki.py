@@ -238,6 +238,7 @@ def format_tech(tech):
             for x in tup)
     recipes = ', '.join(str(x) for x in tech.unlock_recipes)
     pre_techs = ', '.join(str(x) for x in tech.pre_techs)
+    pre_techs_implicit = ', '.join(str(x) for x in tech.pre_techs_implicit)
     fields = {
         'id':tech.id,
         'name':repr(wiki_title(tech.name)),
@@ -248,11 +249,20 @@ def format_tech(tech):
         fields['recipes'] = f'{{{recipes}}}'
     if add_items:
         fields['add_items'] = f'{{{add_items}}}'
+    if tech.level:
+        fields['level'] = tech.level
+    if tech.max_level:
+        fields['max_level'] = tech.max_level
     if pre_techs:
         fields['pre_techs'] = f'{{{pre_techs}}}'
+    if pre_techs_implicit:
+        fields['pre_techs_implicit'] = f'{{{pre_techs_implicit}}}'
+    fields['position'] = f'{{{tech.position[0]}, {tech.position[1]}}}'
     fields['description'] = repr(color_sub(tech.description))
     if tech.conclusion:
         fields['conclusion'] = repr(color_sub(tech.conclusion))
+    if not tech.published:
+        fields['disabled'] = 'true'
     return '{\n' + ''.join(f'        {k}={v},\n' for k, v in fields.items()) + '    },'
 
 def format_facility(facility, items_map):
@@ -441,9 +451,25 @@ relevant/present for the given tech. The valid fields are:
     recipes - What recipe_ids are unlocked by this tech. Omitted if empty.
     add_items - Item ids that are added directly to your inventory on
                 completion of this tech. Same format as inputs. Omitted if empty.
+    level - If present, indicates the "level" of this tech, usually indicating
+            that this tech can be researched multiple times. Either the same
+            tech can be researched (if there is a range between level and
+            max_level), or there can be multiple instances with the same name
+            (this is how upgrades are handled, since they have different icons
+            and other differences at each level).
+    max_level - The highest level that can be attained with this instance of
+                the tech, but there may be other instances with the same name
+                and different level ranges. Always paired with level.
     pre_techs - Prerequisite technologies. Omitted if empty.
+    pre_techs_implicit - *Also* prerequisite technologies, but they couldn't
+                         figure out how to draw these lines on the tech tree
+                         and still have it look pretty. In other words, it's a
+                         big hack. Omitted if empty.
+    position - Where it's located on the tech tree.
     description - The in-game tech-tree text. May include colored spans.
     conclusion - The text shown in the pop-up when you finish researching.
+    disabled - If true, this tech shows up in the tech tree, but isn't
+               available yet.
 ]]
 game_techs = {{
     {techs_str}
