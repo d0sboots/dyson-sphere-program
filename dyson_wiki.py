@@ -51,6 +51,8 @@ BUILDINGS = {
     ERecipeType.FRACTIONATE:[2314],
     ERecipeType.RESEARCH:[2901]}
 
+# This is the only one set of strings that is not localized, because we ended
+# up pluralizing all these categories.
 CATEGORIES = {
     EItemType.UNKNOWN:'Unknown Category',
     EItemType.RESOURCE:'Natural Resources',
@@ -64,15 +66,16 @@ CATEGORIES = {
     EItemType.MATRIX:'Science Matrices'}
 
 BUILDING_CATEGORIES = [
-    'Power',
-    'Gathering',
-    'Logistics',
-    'Storage',
-    'Production',
-    'Transportation',
-    'Research',
-    'Dyson Sphere Program',
-    'Environment Modification']
+    '电力类',    # Power (1)
+    '采集类',    # Gathering (2)
+    '运输类',    # Logistics (3)
+    '仓储类',    # Storage (4)
+    '生产类',    # Production (5)
+    '物流类',    # Transportation (6)
+    '研究类',    # Research (7)
+    '戴森球类',  # Dyson Sphere Program (8)
+    '环改类']    # Environment Modification (9)
+
 
 # Patches we make to be explicit about what techs unlock items.
 # This lists the recipe id of recipes to be "fixed": Their first output item
@@ -107,17 +110,23 @@ def translate_fields(translations, proto_set, fields):
             if val:
                 setattr(item, field, translations[val])
 
-def translate_data(data):
+def translate_data(data, lang):
     """In-place translate all text fields in 'data'."""
     translations = {}
+    VALID_LANGS = ['zh_cn', 'en_us', 'fr_fr']
+    if lang not in VALID_LANGS:
+        raise RuntimeError(
+            f'{lang!r} is not a valid language, choose one of {VALID_LANGS}')
     for proto in data.StringProtoSet.data_array:
-        translations[proto.name] = proto.en_us
+        translations[proto.name] = getattr(proto, lang)
     translate_fields(translations, data.ItemProtoSet,
                      ['name', 'mining_from', 'produce_from', 'description'])
     translate_fields(translations, data.RecipeProtoSet, ['name', 'description'])
     translate_fields(translations, data.TechProtoSet, ['name', 'description', 'conclusion'])
     for k, text in MADE_FROM.items():
         MADE_FROM[k] = translations.get(text, text)
+    for i, text in enumerate(BUILDING_CATEGORIES):
+        BUILDING_CATEGORIES[i] = translations.get(text, text).rstrip(' (0123456789)')
 
 def dump_all(data):
     """Print all the game data in raw-ish form.
@@ -535,6 +544,8 @@ def fuzzy_lookup_item(name_or_id, lst):
 def main():
     """Main function, keeps a separate scope"""
     parser = argparse.ArgumentParser()
+    parser.add_argument('--lang', '-l', default='en_us',
+                        help='Language to translate all strings to')
     parser.add_argument('--find_item',
                         help='Lookup a specific item, by name or id')
     parser.add_argument('--find_recipe',
@@ -555,7 +566,7 @@ def main():
 
     print('Reading data... ', end='', flush=True, file=sys.stderr)
     data = dysonsphere.load_all()
-    translate_data(data)
+    translate_data(data, args.lang)
     print('Done!', flush=True, file=sys.stderr)
 
     try:
