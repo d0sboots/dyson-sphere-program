@@ -242,8 +242,7 @@ def format_tech(tech):
     """Formats a tech as a Lua table."""
     add_items = ', '.join(str(x) for tup in zip(tech.add_items, tech.add_item_counts)
             for x in tup)
-    research_counts = [(x * tech.hash_needed) // 3600 for x in tech.item_points]
-    research_items = ', '.join(str(x) for tup in zip(tech.items, research_counts)
+    research_items = ', '.join(str(x) for tup in zip(tech.items, tech.item_points)
             for x in tup)
     recipes = ', '.join(str(x) for x in tech.unlock_recipes)
     pre_techs = ', '.join(str(x) for x in tech.pre_techs)
@@ -254,6 +253,10 @@ def format_tech(tech):
         'hash_needed':tech.hash_needed,
         'inputs':f'{{{research_items}}}',
     }
+    if tech.level_coef1:
+        fields['level_coef1'] = tech.level_coef1
+    if tech.level_coef2:
+        fields['level_coef2'] = tech.level_coef2
     if recipes:
         fields['recipes'] = f'{{{recipes}}}'
     if add_items:
@@ -453,10 +456,21 @@ relevant/present for the given tech. The valid fields are:
     id
     name - Title-Cased vs. what's in the game.
     hash_needed - The amount of hash needed to research, as a raw number.
-    inputs - The total items needed to complete the research. This has the
+                  Sometimes this is not the true amount, when it changes
+                  per-level: See level_coef below.
+    level_coef1 - This times the tech's (raw) level is added to hash_needed
+                  to calculate the true amount. Used to create infinitely
+                  researchable upgrades with linearly scaling costs.
+    level_coef2 - This times [the tech's (raw) level squared] is added to
+                  hash_needed to calculate the true amount. Used to create
+                  infinitely researchable upgrades with quadratically scaling
+                  costs.
+    inputs - The items needed to complete one step of research. This has the
              same format as recipes: Alternating item_id, count, etc. For
              early techs this will be regular items, for later techs it will
-             be matrices.
+             be matrices. Note that one step of research lasts one minute,
+             i.e. it provides 3600 hash. So the total number of items will be
+             the count * hash_needed / 3600.
     recipes - What recipe_ids are unlocked by this tech. Omitted if empty.
     add_items - Item ids that are added directly to your inventory on
                 completion of this tech. Same format as inputs. Omitted if empty.
