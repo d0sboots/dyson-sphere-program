@@ -468,7 +468,7 @@ relevant/present for the given tech. The valid fields are:
     inputs - The items needed to complete one step of research. This has the
              same format as recipes: Alternating item_id, count, etc. For
              early techs this will be regular items, for later techs it will
-             be matrices. Note that one step of research lasts one minute,
+             be matrices. Note that one step of research lasts one second,
              i.e. it provides 3600 hash. So the total number of items will be
              the count * hash_needed / 3600.
     recipes - What recipe_ids are unlocked by this tech. Omitted if empty.
