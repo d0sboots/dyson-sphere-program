@@ -40,16 +40,18 @@ MADE_FROM = {
     ERecipeType.FRACTIONATE:'分馏设备',
     ERecipeType.RESEARCH:'科研设备',
     None:'未知'}
+# The second part of the tuple is crafting power: The power of the building
+# (Mk.I in the case of Assembler) divided by the crafting speed.
 BUILDINGS = {
-    ERecipeType.SMELT:[2302],
-    ERecipeType.CHEMICAL:[2309],
-    ERecipeType.REFINE:[2308],
-    ERecipeType.ASSEMBLE:[2303, 2304, 2305],
-    ERecipeType.PARTICLE:[2310],
-    ERecipeType.EXCHANGE:[2209],
-    ERecipeType.PHOTON_STORE:[2208],
-    ERecipeType.FRACTIONATE:[2314],
-    ERecipeType.RESEARCH:[2901]}
+    ERecipeType.SMELT:([2302], 360000),
+    ERecipeType.CHEMICAL:([2309], 720000),
+    ERecipeType.REFINE:([2308], 960000),
+    ERecipeType.ASSEMBLE:([2303, 2304, 2305], 360000),
+    ERecipeType.PARTICLE:([2310], 12000000),
+    ERecipeType.EXCHANGE:([2209], 0),
+    ERecipeType.PHOTON_STORE:([2208], 0),
+    ERecipeType.FRACTIONATE:([2314], 720000),
+    ERecipeType.RESEARCH:([2901], 0)}
 
 # This is the only one set of strings that is not localized, because we ended
 # up pluralizing all these categories.
@@ -279,10 +281,11 @@ def format_tech(tech):
 
 def format_facility(facility, items_map):
     """Formats an ERecipeType enum as a Lua table."""
-    buildings = ', '.join(str(x) for x in BUILDINGS.get(facility, []))
-    building_comment = ', '.join(
-            items_map[x][0].name for x in BUILDINGS.get(facility, []))
+    building_list, power = BUILDINGS.get(facility, ([], 0))
+    buildings = ', '.join(str(x) for x in building_list)
+    building_comment = ', '.join(items_map[x][0].name for x in building_list)
     return (f'    {facility.name}={{name={MADE_FROM.get(facility, MADE_FROM[None])!r}, ' +
+            f'power={power}, ' +
             f'buildings={{{buildings}}}}},  --{building_comment}\n')
 
 
@@ -503,6 +506,8 @@ game_techs = {{
 
 -- This is a map from recipe type (which is effectively facility type) to its name
 -- and an array of item ids of buildings that can produce those types of recipes.
+-- The power field measures the power usage of the facility, divided by its
+-- production speed (so its effective power usage to craft at 1s nominal.)
 game_facilities = {{
 {facilities_str}}},
 
