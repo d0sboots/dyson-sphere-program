@@ -48,10 +48,10 @@ BUILDINGS = {
     ERecipeType.REFINE:([2308], 960000),
     ERecipeType.ASSEMBLE:([2303, 2304, 2305], 360000),
     ERecipeType.PARTICLE:([2310], 12000000),
-    ERecipeType.EXCHANGE:([2209], 0),
+    ERecipeType.EXCHANGE:([2209], 45000000),
     ERecipeType.PHOTON_STORE:([2208], 0),
     ERecipeType.FRACTIONATE:([2314], 720000),
-    ERecipeType.RESEARCH:([2901], 0)}
+    ERecipeType.RESEARCH:([2901], 480000)}
 
 # This is the only one set of strings that is not localized, because we ended
 # up pluralizing all these categories.
