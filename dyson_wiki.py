@@ -104,6 +104,23 @@ KEY_TWEAKS = {75: 103, #Universe Matrix -> After Gravity Matrix
     87: 92} #Splitter
 COLOR_RE = re.compile('<color="([^"]*)">([^<]*)</color>')
 
+SPECIAL_MATERIALS_COMMENT="""
+-- Raw materials that are not always available, and enable secondary or
+-- "special" crafting recipes. In same cases, this just means that harvesting
+-- the material directly enables skipping a production chain.
+-- These are item_ids, ordered in the way they are presented to the user.
+-- Sometimes not all options may be available."""
+SPECIAL_MATERIALS = [
+    1016,  # Unipolar Magnet
+    1015,  # Spiniform Stalagmite Crystal
+    1014,  # Optical Grating Crystal
+    1117,  # Organic Crystal
+    1011,  # Fire Ice
+    1116,  # Sulfuric Acid
+    1013,  # Fractal Silicon
+    1012,  # Kimberlite Ore
+    1003]  # Silicon Ore
+
 def translate_fields(translations, proto_set, fields):
     """In-place replace text with translations for one proto_set."""
     for item in proto_set.data_array:
@@ -361,6 +378,8 @@ def print_wiki(data):
     techs_str = ''.join(format_tech(x) for x in techs)
     facilities_str = ''.join(format_facility(x, items_map) for x in ERecipeType)
     starting_recipes_str = ', '.join(str(x) for x in STARTING_RECIPES)
+    special_materials_str = '\n'.join(
+        f'    {x},  -- {items_map[x][0].name}' for x in SPECIAL_MATERIALS)
     categories_str = ''.join(f'    {k.name}={v!r},\n' for k, v in CATEGORIES.items())
     building_categories_str = ''.join(f'    {x!r},\n' for x in BUILDING_CATEGORIES)
 
@@ -514,6 +533,10 @@ game_facilities = {{
 -- This is just an array of what you start out being able to craft.
 -- (Both in the replicator, and in buildings once you get them.)
 starting_recipes = {{{starting_recipes_str}}},
+{SPECIAL_MATERIALS_COMMENT}
+special_materials = {{
+{special_materials_str}
+}},
 
 -- This maps the symbolic item type names to wiki categories.
 -- These don't come from the game files at all, although they're essentially
