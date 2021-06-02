@@ -288,6 +288,7 @@ def format_tech(tech):
         fields['pre_techs'] = f'{{{pre_techs}}}'
     if pre_techs_implicit:
         fields['pre_techs_implicit'] = f'{{{pre_techs_implicit}}}'
+    fields['image'] = repr(tech.icon_path.split('/')[-1])
     fields['position'] = f'{{{tech.position[0]}, {tech.position[1]}}}'
     fields['description'] = repr(color_sub(tech.description))
     if tech.conclusion:
@@ -510,6 +511,7 @@ relevant/present for the given tech. The valid fields are:
                          figure out how to draw these lines on the tech tree
                          and still have it look pretty. In other words, it's a
                          big hack. Omitted if empty.
+    image - The name of the image. Usually the same as the id, but not always.
     position - Where it's located on the tech tree.
     description - The in-game tech-tree text. May include colored spans.
     conclusion - The text shown in the pop-up when you finish researching.
