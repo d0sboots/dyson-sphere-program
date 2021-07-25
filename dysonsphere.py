@@ -393,6 +393,7 @@ class ItemProtoSet(Object):
 
     _layout = """
     table_name:string
+    signature:string
     data_array:array(ItemProto)
     """
 
@@ -423,6 +424,7 @@ class RecipeProtoSet(Object):
 
     _layout = """
     table_name:string
+    signature:string
     data_array:array(RecipeProto)
     """
 
@@ -445,6 +447,7 @@ class StringProtoSet(Object):
 
     _layout = """
     table_name:string
+    signature:string
     data_array:array(StringProto)
     """
 
@@ -483,6 +486,7 @@ class TechProtoSet(Object):
 
     _layout = """
     table_name:string
+    signature:string
     data_array:array(TechProto)
     """
 
