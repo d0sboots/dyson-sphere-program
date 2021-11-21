@@ -193,6 +193,8 @@ def format_item(item_entry):
         'grid_index':item.grid_index,
         'stack_size':item.stack_size,
     }
+    if item.sub_id:
+        fields['sub_id'] = item.sub_id
     if item.can_build:
         fields['can_build'] = 'true'
     if item.build_index:
@@ -401,6 +403,8 @@ relevant/present for the given item. The valid fields are:
                  replicator, while item grid_index is used with filters (for
                  example).
     stack_size
+    sub_id - Set for building with different types (i.e. conveyers), and also
+             all the different energy producers.
     can_build - Mostly equivalent to "is_building?", except also true for
                 Foundation.
     build_index - Where this appears in the build shortcut menus, in the form

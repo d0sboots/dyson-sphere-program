@@ -360,6 +360,7 @@ class ItemProto(Object):
     id:int32
     sid:string
     type:enum(EItemType)
+    sub_id:int32
     mining_from:string
     produce_from:string
     stack_size:int32
