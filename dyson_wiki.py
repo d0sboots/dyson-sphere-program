@@ -127,7 +127,7 @@ def translate_fields(translations, proto_set, fields):
         for field in fields:
             val = getattr(item, field)
             if val:
-                setattr(item, field, translations[val])
+                setattr(item, field, translations.get(val, '**' + val + '**'))
 
 def translate_data(data, lang):
     """In-place translate all text fields in 'data'."""

@@ -384,6 +384,8 @@ class ItemProto(Object):
     grid_index:int32
     unlock_key:int32
     pre_tech_override:int32
+    productive:bool
+    mecha_material_id:int32
     desc_fields:array_int32
     description:string
     """
@@ -417,6 +419,7 @@ class RecipeProto(Object):
     grid_index:int32
     icon_path:string
     description:string
+    non_productive:bool
     """
 
 
@@ -471,6 +474,7 @@ class TechProto(Object):
     is_lab_tech:bool
     pre_techs:array_int32
     pre_techs_implicit:array_int32
+    pre_techs_max:bool
     items:array_int32
     item_points:array_int32
     hash_needed:int64
