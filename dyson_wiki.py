@@ -225,8 +225,11 @@ def format_recipe(recipe_entry):
     rec, disabled = recipe_entry
     if rec.id == 115:
         # Deuterium Fractionation: The game does a bunch of hacks and so do we.
-        rec.result_counts[0] /= 100.0
-        rec.item_counts[0] /= 100.0
+        if len(rec.result_counts) == 1:
+            rec.results.append(1120)
+            rec.result_counts.append(99)
+        rec.result_counts = [x / 100.0 for x in rec.result_counts]
+        rec.item_counts = [x / 100.0 for x in rec.item_counts]
     time_spend = round(rec.time_spend / 60.0, 3)
     if time_spend == int(time_spend):
         time_spend = int(time_spend)  # Changes str() formating
