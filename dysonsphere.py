@@ -1,14 +1,17 @@
 """Module for reading the Dyson Sphere Program data files.
 
 This requires the following files:
+* ItemProtoSet.dat
 * RecipeProtoSet.dat
+* TechProtoSet.dat
+* StringProtoSet.dat
 
 All of these are extracted from the game file
 "DSPGAME_Data/resources.assets", using a tool like Unity Asset Bundle
 Extractor. To help locate them, they all have the type "MonoBehavior", at the
-time of this writing they start at File ID 0/Path ID: 20181, and their names
-all end with "ProtoSet". Don't be fooled by the definition of the class
-itself, which happens in File ID 1.
+time of this writing they start at File ID 1/Path ID: 39345, and their names
+all end with "ProtoSet". Another way to find them is that StringProtoSet is
+one of the larger items in the bundle.
 
 To use, call load_all(), which parses the files into a GameData object, or
 call load_data() to load a single data type.
@@ -477,6 +480,8 @@ class TechProto(Object):
     pre_techs_max:bool
     items:array_int32
     item_points:array_int32
+    property_override_items:array_int32
+    property_item_counts:array_int32
     hash_needed:int64
     unlock_recipes:array_int32
     unlock_functions:array_int32
