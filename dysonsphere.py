@@ -389,6 +389,7 @@ class ItemProto(Object):
     pre_tech_override:int32
     productive:bool
     mecha_material_id:int32
+    drop_rate:float
     desc_fields:array_int32
     description:string
     """
