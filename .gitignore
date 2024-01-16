@@ -2,3 +2,5 @@ wikitext.txt
 __pycache__
 .*.swp
 *.dat
+base.txt
+prototype.txt

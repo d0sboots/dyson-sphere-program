@@ -12,7 +12,8 @@ To run, this requires the following files in the current directory:
 * ItemProtoSet.dat
 * RecipeProtoSet.dat
 * TechProtoSet.dat
-* StringProtoSet.dat
+* base.txt
+* prototype.txt
 
 These must be extracted from the game files. See the module help in
 "dysonsphere.py" for details.
@@ -64,7 +65,9 @@ CATEGORIES = {
     EItemType.LOGISTICS:'Logistics',
     EItemType.PRODUCTION:'Production Facilities',
     EItemType.DECORATION:'Decorations',
-    EItemType.WEAPON:'Weapons',
+    EItemType.TURRET:'Turrets',
+    EItemType.DEFENSE:'Defense',
+    EItemType.DARK_FOG:'Dark Fog',
     EItemType.MATRIX:'Science Matrices'}
 
 BUILDING_CATEGORIES = [
@@ -103,10 +106,11 @@ KEY_TWEAKS = {75: 103, #Universe Matrix -> After Gravity Matrix
     91: 91, #Storage Mk. II
     87: 92} #Splitter
 COLOR_RE = re.compile('<color="([^"]*)">([^<]*)</color>')
+TRANSLATE_RE = re.compile(r'(.*)\t.?\t[0-9]\t(.*?)\n?')
 
 SPECIAL_MATERIALS_COMMENT="""
 -- Raw materials that are not always available, and enable secondary or
--- "special" crafting recipes. In same cases, this just means that harvesting
+-- "special" crafting recipes. In some cases, this just means that harvesting
 -- the material directly enables skipping a production chain.
 -- These are item_ids, ordered in the way they are presented to the user.
 -- Sometimes not all options may be available."""
@@ -129,15 +133,16 @@ def translate_fields(translations, proto_set, fields):
             if val:
                 setattr(item, field, translations.get(val, '**' + val + '**'))
 
-def translate_data(data, lang):
+
+
+def translate_data(data):
     """In-place translate all text fields in 'data'."""
     translations = {}
-    VALID_LANGS = ['zh_cn', 'en_us', 'fr_fr']
-    if lang not in VALID_LANGS:
-        raise RuntimeError(
-            f'{lang!r} is not a valid language, choose one of {VALID_LANGS}')
-    for proto in data.StringProtoSet.data_array:
-        translations[proto.name] = getattr(proto, lang)
+    for line in data.base + data.prototype:
+        match = TRANSLATE_RE.fullmatch(line)
+        if not match:
+            raise RuntimeError(f"Translation line failed to parse: {line}")
+        translations[match[1]] = match[2]
     translate_fields(translations, data.ItemProtoSet,
                      ['name', 'mining_from', 'produce_from', 'description'])
     translate_fields(translations, data.RecipeProtoSet, ['name', 'description'])
@@ -271,6 +276,7 @@ def format_tech(tech):
     recipes = ', '.join(str(x) for x in tech.unlock_recipes)
     pre_techs = ', '.join(str(x) for x in tech.pre_techs)
     pre_techs_implicit = ', '.join(str(x) for x in tech.pre_techs_implicit)
+    pre_item = ', '.join(str(x) for x in tech.pre_item)
     fields = {
         'id':tech.id,
         'name':repr(wiki_title(tech.name)),
@@ -293,6 +299,10 @@ def format_tech(tech):
         fields['pre_techs'] = f'{{{pre_techs}}}'
     if pre_techs_implicit:
         fields['pre_techs_implicit'] = f'{{{pre_techs_implicit}}}'
+    if pre_item:
+        fields['pre_item'] = f'{{{pre_item}}}'
+    if tech.is_hidden_tech:
+        fields['is_hidden_tech'] = 'true'
     fields['image'] = repr(tech.icon_path.split('/')[-1])
     fields['position'] = f'{{{tech.position[0]}, {tech.position[1]}}}'
     fields['description'] = repr(color_sub(tech.description))
@@ -518,6 +528,8 @@ relevant/present for the given tech. The valid fields are:
                          figure out how to draw these lines on the tech tree
                          and still have it look pretty. In other words, it's a
                          big hack. Omitted if empty.
+    pre_item - Prerequisite items to research. Omitted if empty.
+    is_hidden_tech - Is this normally hidden? Tends to go with pre_item.
     image - The name of the image. Usually the same as the id, but not always.
     position - Where it's located on the tech tree.
     description - The in-game tech-tree text. May include colored spans.
@@ -595,8 +607,6 @@ def fuzzy_lookup_item(name_or_id, lst):
 def main():
     """Main function, keeps a separate scope"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lang', '-l', default='en_us',
-                        help='Language to translate all strings to')
     parser.add_argument('--find_item',
                         help='Lookup a specific item, by name or id')
     parser.add_argument('--find_recipe',
@@ -617,7 +627,7 @@ def main():
 
     print('Reading data... ', end='', flush=True, file=sys.stderr)
     data = dysonsphere.load_all()
-    translate_data(data, args.lang)
+    translate_data(data)
     print('Done!', flush=True, file=sys.stderr)
 
     try:

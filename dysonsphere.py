@@ -4,14 +4,17 @@ This requires the following files:
 * ItemProtoSet.dat
 * RecipeProtoSet.dat
 * TechProtoSet.dat
-* StringProtoSet.dat
+* base.txt
+* prototype.txt
 
-All of these are extracted from the game file
+The first three of these are extracted from the game file
 "DSPGAME_Data/resources.assets", using a tool like Unity Asset Bundle
 Extractor. To help locate them, they all have the type "MonoBehavior", at the
-time of this writing they start at File ID 1/Path ID: 39345, and their names
-all end with "ProtoSet". Another way to find them is that StringProtoSet is
-one of the larger items in the bundle.
+time of this writing they start at File ID 1/Path ID: 100217, and their names
+all end with "ProtoSet".
+
+The two .txt files are copied from the directory "Locale\1033\" for English,
+or from a different subdirectory for a different language.
 
 To use, call load_all(), which parses the files into a GameData object, or
 call load_data() to load a single data type.
@@ -29,7 +32,6 @@ __all__ = [
     'EItemType', 'ERecipeType',
     'ItemProto', 'ItemProtoSet',
     'RecipeProto', 'RecipeProtoSet',
-    'StringProto', 'StringProtoSet',
     'load_all', 'load_data', 'do_all', 'find_all']
 
 _DEBUG = False
@@ -326,6 +328,16 @@ class Object:
         return self._str_begin + ', '.join(acc) + ')'
 
 
+class EAmmoType(IntEnum):
+    """The type of an ammo."""
+    NONE = 0
+    BULLET = 1
+    LASER = 2
+    CANNON = 3
+    PLASMA = 4
+    MISSILE = 5
+
+
 class ERecipeType(IntEnum):
     """The type of a recipe."""
     NONE = 0
@@ -350,9 +362,10 @@ class EItemType(IntEnum):
     LOGISTICS = 5
     PRODUCTION = 6
     DECORATION = 7
-    WEAPON = 8
-    MATRIX = 9
-    MONSTER = 10
+    TURRET = 8
+    DEFENSE = 9
+    DARK_FOG = 10
+    MATRIX = 11
 
 
 class ItemProto(Object):
@@ -382,6 +395,9 @@ class ItemProto(Object):
     potential:int64
     reactor_inc:float
     fuel_type:int32
+    ammo_type:enum(EAmmoType)
+    bomb_type:int32
+    craft_type:int32
     build_index:int32
     build_mode:int32
     grid_index:int32
@@ -390,6 +406,11 @@ class ItemProto(Object):
     productive:bool
     mecha_material_id:int32
     drop_rate:float
+    enemy_drop_level:int32
+    enemy_drop_range:vector2f
+    enemy_drop_count:float
+    enemy_drop_mask:int32
+    enemy_drop_mask_ratio:float
     desc_fields:array_int32
     description:string
     """
@@ -437,29 +458,6 @@ class RecipeProtoSet(Object):
     """
 
 
-class StringProto(Object):
-    """A translation for anything at all"""
-
-    _layout = """
-    name:string
-    id:int32
-    sid:string
-    zh_cn:string
-    en_us:string
-    fr_fr:string
-    """
-
-
-class StringProtoSet(Object):
-    """All translations in the game"""
-
-    _layout = """
-    table_name:string
-    signature:string
-    data_array:array(StringProto)
-    """
-
-
 class TechProto(Object):
     """A translation for anything at all"""
 
@@ -470,6 +468,8 @@ class TechProto(Object):
     description:string
     conclusion:string
     published:bool
+    is_hidden_tech:bool
+    pre_item:array_int32
     level:int32
     max_level:int32
     level_coef1:int32
@@ -505,11 +505,11 @@ class TechProtoSet(Object):
 _ALL_DATA_TYPES = [
     ('ItemProtoSet', ItemProtoSet),
     ('RecipeProtoSet', RecipeProtoSet),
-    ('StringProtoSet', StringProtoSet),
     ('TechProtoSet', TechProtoSet),
 ]
 
 _VALID_TYPES = [x[0] for x in _ALL_DATA_TYPES]
+_VALID_TXTS = ['base', 'prototype']
 
 def load_data(data_type, filename=None, /):
     """Load a single data file.
@@ -527,7 +527,7 @@ def load_data(data_type, filename=None, /):
     with closing(_Reader(filename)) as reader:
         return cls(*reader.get_funcs())
 
-GameData = collections.namedtuple('GameData', _VALID_TYPES)
+GameData = collections.namedtuple('GameData', _VALID_TYPES + _VALID_TXTS)
 GameData.__doc__ = """namedtuple result type of load_all()"""
 
 def load_all(root_dir='.', /):
@@ -540,6 +540,9 @@ def load_all(root_dir='.', /):
     '.dat' - for instance events.dat is loaded into events."""
     result = dict((x, load_data(x, path.join(root_dir, x + '.dat')))
                   for x in _VALID_TYPES)
+    for x in _VALID_TXTS:
+        with open(path.join(root_dir, x + '.txt'), encoding="utf-16") as f:
+            result[x] = f.readlines()
     return GameData(**result)
 
 def do_all(obj, fun, /):
