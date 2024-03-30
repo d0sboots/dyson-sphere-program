@@ -529,7 +529,7 @@ relevant/present for the given tech. The valid fields are:
                          and still have it look pretty. In other words, it's a
                          big hack. Omitted if empty.
     pre_item - Prerequisite items to research. Omitted if empty.
-    is_hidden_tech - Is this normally hidden? Tends to go with pre_item.\
+    is_hidden_tech - Is this normally hidden? Tends to go with pre_item.
     is_obsolete - True when obsolete.
     image - The name of the image. Usually the same as the id, but not always.
     position - Where it's located on the tech tree.
