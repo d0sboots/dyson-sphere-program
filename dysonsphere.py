@@ -336,6 +336,7 @@ class EAmmoType(IntEnum):
     CANNON = 3
     PLASMA = 4
     MISSILE = 5
+    EM = 6
 
 
 class ERecipeType(IntEnum):
@@ -469,6 +470,7 @@ class TechProto(Object):
     conclusion:string
     published:bool
     is_hidden_tech:bool
+    is_obsolete:bool
     pre_item:array_int32
     level:int32
     max_level:int32
